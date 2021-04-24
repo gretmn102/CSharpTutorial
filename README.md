@@ -325,7 +325,7 @@ int ammo = System.Int32.Parse("something");
 int ammo = System.Int32.Parse("42 is answer of...");
 ```
 
-Когда выбивает исключение, программа останавливается, и больше ее не сдвинуть. Так, что же делать, если пользователь вводит ошибочные данные? Здесь есть два пути: либо [обработать исключение](), либо воспользоваться, э-э... Я не знаю, как это точно называется, но при проектировании программ обрабатывать исключения нужно, когда возможные ошибки слишком разнообразны. Это довольно глубокая тема, и относится, скорее, к проектированию систем, чем к механизмам языка.
+Когда выбивает исключение, программа останавливается, и больше ее не сдвинуть. Так, что же делать, если пользователь вводит ошибочные данные? Здесь есть два пути: либо [обработать исключение](#исключения), либо воспользоваться, э-э... Я не знаю, как это точно называется, но при проектировании программ обрабатывать исключения нужно, когда возможные ошибки слишком разнообразны. Это [довольно глубокая тема](https://softwareengineering.stackexchange.com/questions/189222/are-exceptions-as-control-flow-considered-a-serious-antipattern-if-so-why), и относится, скорее, к проектированию систем, нежели к механизмам языка.
 
 В общем, в данном случае (т.е. когда нужно обработать именно числовые данные) в C# существует особенная функция `System.Int32.TryParse`, которая используется так:
 
@@ -552,3 +552,65 @@ static void Main(string[] args)
 ```
 
 Ну, хоть ничего у Fering'а нет, зато он силен как Гимли, так-то!
+
+
+## Исключения
+
+```csharp
+static int TenDividedBy(string input) {
+    int result;
+    if (System.Int32.TryParse(input, out result)) {
+        if (result == 0) {
+            throw new System.DivideByZeroException("Нельзя делить на ноль!");
+        } else {
+            return 10 / result;
+        }
+    } else {
+        throw new System.ArgumentException($"'{input}' — не число!");
+    }
+}
+
+static void WithExceptionHandling(string input) {
+    try {
+        int result = TenDividedBy(input);
+        System.Console.WriteLine($"10 / {input} = {result}");
+    }
+    catch (System.DivideByZeroException) {
+        System.Console.WriteLine("Попытка деления на ноль.");
+    }
+    catch (System.ArgumentException) {
+        System.Console.WriteLine("С аргументом что-то не так");
+    }
+}
+static void Main(string[] args)
+{
+    bool isContinue = true;
+    while (isContinue) {
+        System.Console.WriteLine("Введите число:");
+        string input = System.Console.ReadLine();
+        System.Console.WriteLine();
+
+        System.Console.WriteLine("С обработкой исключения выдаст такое:");
+        WithExceptionHandling(input);
+
+        System.Console.WriteLine();
+
+        System.Console.WriteLine("Без обработки исключения:");
+        System.Console.WriteLine(TenDividedBy(input));
+    }
+}
+```
+
+```
+Введите число:
+foobar
+
+С обработкой исключения выдаст такое:
+С аргументом что-то не так
+
+Без обработки исключения:
+Unhandled exception. System.ArgumentException: 'foobar' - не число!
+   at HelloWorld.Program.TenDividedBy(String input) in E:\Project\CSharpTutorial\HelloWorld\Program.cs:line 58
+   at HelloWorld.Program.Main(String[] args) in E:\Project\CSharpTutorial\HelloWorld\Program.cs:line 84
+```
+
